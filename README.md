@@ -1,27 +1,30 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/small-tk/pathlib)](https://goreportcard.com/report/github.com/small-tk/pathlib) [![license](https://img.shields.io/github/license/small-tk/pathlib.svg)](https://github.com/small-tk/pathlib/blob/master/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/smurfless1/pathlib)](https://goreportcard.com/report/github.com/smurfless1/pathlib) [![license](https://img.shields.io/github/license/smurfless1/pathlib.svg)](https://github.com/smurfless1/pathlib/blob/master/LICENSE)
 
 # pathlib
 
-A golang path library, it is easy to use. Similar to Python patblib.
-
-> 该项目目前处于积极发展期😀，欢迎 issues
+A golang path library, it is easy to use. Similar to Python pathlib.
 
 # Installation
 
 ```
-go get -u github.com/small-tk/pathlib
+go get -u github.com/smurfless1/pathlib
 ```
 
-# Enjoy
+# But why?
 
+I have a large python codebase that I'm porting to golang, and plainly I missed having a familiar interface to 
+filesystem paths.
+
+I saw someone had started a project to provide a similar implementaiton, but my QA feelers went very, very red when 
+I missed tests, interfaces, mocks, etc.
 
 ```go
 
 package main
 
-import "github.com/small-tk/pathlib"
+import "github.com/smurfless1/pathlib"
 
-func main (){
+func main () {
 	p := New("test.txt")
 
 	fmt.Println(p.Absolute())
