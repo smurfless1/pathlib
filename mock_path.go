@@ -212,7 +212,7 @@ func (mr *MockPathMockRecorder) Exists() *gomock.Call {
 // IsAbs mocks base method
 func (m *MockPath) IsAbs() bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsAbs")
+	ret := m.ctrl.Call(m, "IsAbsolute")
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
@@ -220,7 +220,7 @@ func (m *MockPath) IsAbs() bool {
 // IsAbs indicates an expected call of IsAbs
 func (mr *MockPathMockRecorder) IsAbs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAbs", reflect.TypeOf((*MockPath)(nil).IsAbs))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAbsolute", reflect.TypeOf((*MockPath)(nil).IsAbs))
 }
 
 // IsFile mocks base method

@@ -55,6 +55,15 @@ func (p *PathImpl) Absolute() (*PathImpl, error) {
 		return nil, errors.Wrap(err, "get absolute failed")
 	}
 	newP := NewPathImpl(pth)
+	if ! newP.Exists() {
+		parts := p.Parts()
+		parts = append([]string{"/"}, parts...)
+		newP = FromParts(parts)
+		if ! newP.Exists() {
+			return nil, errors.New("unable to resolve path to file")
+		}
+	}
+
 	return newP, nil
 }
 
@@ -154,8 +163,8 @@ func (p *PathImpl) IsFile() bool {
 	return !f.IsDir()
 }
 
-// IsAbs reports whether the path is absolute.
-func (p *PathImpl) IsAbs() bool {
+// IsAbsolute reports whether the path is absolute.
+func (p *PathImpl) IsAbsolute() bool {
 	return filepath.IsAbs(p.Path)
 }
 
