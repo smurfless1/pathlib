@@ -3,6 +3,8 @@ package pathlib
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +13,7 @@ func TestPathInOut(t *testing.T) {
 	pp := PathImpl{Path: "/tmp"}
 	assert.True(t, pp.Exists())
 	assert.True(t, pp.IsDir())
-	assert.True(t, pp.IsAbs())
+	assert.True(t, pp.IsAbsolute())
 	assert.Equal(t, "/tmp", pp.Path)
 	parts := pp.Parts()
 	assert.Equal(t, []string{"tmp"}, parts)
@@ -19,6 +21,16 @@ func TestPathInOut(t *testing.T) {
 	// relative when extracted
 	made := FromParts(parts)
 	assert.Equal(t, "tmp", made.Path)
+	absolute, err := made.Absolute(); if err != nil { log.Println(err)}
+	assert.Equal(t, "/tmp", absolute.Path)
+
+	made = FromParts([]string{"foo"})
+	absolute, err = made.Absolute()
+	assert.EqualError(t, err, "unable to resolve path to file")
+
+	made = FromParts([]string{"pathlib/pathlib.go"})
+	absolute, err = made.Absolute()
+	assert.True(t, strings.Contains(made.Path,"pathlib/pathlib.go"))
 
 	// making it absolute
 	parts = append([]string{"/"}, parts...)
