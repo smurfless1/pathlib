@@ -4,6 +4,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"os"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -52,7 +54,43 @@ func TestExistsIsMockable(t *testing.T) {
 	assert.Equal(t, false, result, "a should be removed")
 }
 
-func TestStringImpl(t *testing.T) {
-	pp := PathImpl{Path: "/tmp"}
-	assert.Equal(t, "/tmp", pp.String())
+func TestExpandUser(t *testing.T) {
+	// ~/something can be expanded correctly
+	pp := New("~/tmp")
+	assert.Equal(t, "~/tmp", pp.String())
+
+	expanded, err := pp.ExpandUser()
+	assert.Nil(t, err)
+
+	if runtime.GOOS == "windows" {
+		assert.True(t, strings.HasPrefix(expanded.String(), "C:"))
+	} else if runtime.GOOS == "darwin" {
+		assert.True(t, strings.HasPrefix(expanded.String(), "/Users"))
+	} else if runtime.GOOS == "linux" {
+		assert.True(t, strings.HasPrefix(expanded.String(), "/"))
+		assert.True(t, strings.Contains(expanded.String(), "home")) // probably?
+	}
+	assert.True(t, strings.HasSuffix(expanded.String(), "tmp"))
+	assert.True(t, strings.Contains(expanded.String(), os.Getenv("USER")))
+	assert.False(t, strings.HasSuffix(expanded.String(), "/"))
+}
+
+func TestExpandJustUser(t *testing.T) {
+	// Just the tilde expands correctly
+	pp := New("~")
+	assert.Equal(t, "~", pp.String())
+
+	expanded, err := pp.ExpandUser()
+	assert.Nil(t, err)
+
+	if runtime.GOOS == "windows" {
+		assert.True(t, strings.HasPrefix(expanded.String(), "C:"))
+	} else if runtime.GOOS == "darwin" {
+		assert.True(t, strings.HasPrefix(expanded.String(), "/Users"))
+	} else if runtime.GOOS == "linux" {
+		assert.True(t, strings.HasPrefix(expanded.String(), "/"))
+		assert.True(t, strings.Contains(expanded.String(), "home")) // probably?
+	}
+	assert.True(t, strings.Contains(expanded.String(), os.Getenv("USER")))
+	assert.False(t, strings.HasSuffix(expanded.String(), "/"))
 }
