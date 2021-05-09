@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 
@@ -15,51 +16,51 @@ import (
 // Path to a directory or file
 type Path interface {
 	Parts() []string
-	Absolute() (*PathImpl, error)
-	Cwd() (*Path, error)
-	Parent() (*Path, error)
+	Absolute() (Path, error)
+	Cwd() (Path, error)
+	Parent() (Path, error)
 	Touch() error
 	RmDir() error
 	Unlink() error
 	MkDir(mode os.FileMode, parents bool) (err error)
 	Open() ([]byte, error)
 	Chmod(mode os.FileMode) error
-	JoinPath(elem ...string) *Path
+	JoinPath(elem ...string) Path
 	Exists() bool
-	IsAbs() bool
+	IsAbsolute() bool
 	IsFile() bool
 	IsDir() bool
+	ExpandUser() (Path, error)
+	String() string
 }
 
-// PathImpl
+// PathImpl is the real implementation of interface Path over os/filepath and fs and so on
 type PathImpl struct {
 	Path string
 }
 
-// NewPathImpl Returns a new path.
-func NewPathImpl(path string) *PathImpl {
-	p := new(PathImpl)
-	p.Path = path
-	return p
+// New Returns a new path.
+func New(path string) PathImpl {
+	return PathImpl{Path: path}
 }
 
 // FromParts Reconstitute a path string from a list/slice
-func FromParts(value []string) *PathImpl {
-	return NewPathImpl(filepath.Join(value...))
+func FromParts(value []string) PathImpl {
+	return New(filepath.Join(value...))
 }
 
 // Absolute Returns an absolute representation of path.
-func (p *PathImpl) Absolute() (*PathImpl, error) {
+func (p PathImpl) Absolute() (Path, error) {
 	pth, err := filepath.Abs(p.Path)
 	if err != nil {
 		return nil, errors.Wrap(err, "get absolute failed")
 	}
-	newP := NewPathImpl(pth)
-	if ! newP.Exists() {
+	newP := New(pth)
+	if !newP.Exists() {
 		parts := p.Parts()
 		parts = append([]string{"/"}, parts...)
 		newP = FromParts(parts)
-		if ! newP.Exists() {
+		if !newP.Exists() {
 			return nil, errors.New("unable to resolve path to file")
 		}
 	}
@@ -68,47 +69,49 @@ func (p *PathImpl) Absolute() (*PathImpl, error) {
 }
 
 // Cwd Return a new path pointing to the current working directory.
-func (p *PathImpl) Cwd() (*PathImpl, error) {
+func (p PathImpl) Cwd() (Path, error) {
 	pth, err := os.Getwd()
 	if err != nil {
 		return nil, errors.Wrap(err, "get cwd failed")
 	}
-	newP := NewPathImpl(pth)
+	newP := New(pth)
 	return newP, nil
 }
 
 // Parent Return a new path for current path parent.
-func (p *PathImpl) Parent() (*PathImpl, error) {
+func (p PathImpl) Parent() (Path, error) {
 	pth, err := p.Absolute()
 	if err != nil {
 		return nil, errors.Wrap(err, "get parent failed")
 	}
-	dir := filepath.Dir(pth.Path)
-	newP := NewPathImpl(dir)
+	dir := filepath.Dir(pth.String())
+	newP := New(dir)
 	return newP, nil
 }
 
 // Touch Create creates the named file with mode 0666 (before umask), regardless of whether it exists.
-func (p *PathImpl) Touch() error {
+func (p PathImpl) Touch() error {
 	f, err := os.Create(p.Path)
-	f.Close()
-	return err
+	if err != nil {
+		return err
+	}
+	return f.Close()
 }
 
 // Unlink Remove this file or link.
-func (p *PathImpl) Unlink() error {
+func (p PathImpl) Unlink() error {
 	err := syscall.Unlink(p.Path)
 	return err
 }
 
 // RmDir Remove this directory. The directory must be empty.
-func (p *PathImpl) RmDir() error {
+func (p PathImpl) RmDir() error {
 	err := os.Remove(p.Path)
 	return err
 }
 
 // MkDir Create a new directory at this given path.
-func (p *PathImpl) MkDir(mode os.FileMode, parents bool) (err error) {
+func (p PathImpl) MkDir(mode os.FileMode, parents bool) (err error) {
 	if parents {
 		err = os.MkdirAll(p.Path, mode)
 	} else {
@@ -118,7 +121,7 @@ func (p *PathImpl) MkDir(mode os.FileMode, parents bool) (err error) {
 }
 
 // Open Reads the file named by filename and returns the contents.
-func (p *PathImpl) Open() ([]byte, error) {
+func (p PathImpl) Open() ([]byte, error) {
 	buf, err := ioutil.ReadFile(p.Path)
 	if err != nil {
 		return nil, err
@@ -127,26 +130,26 @@ func (p *PathImpl) Open() ([]byte, error) {
 }
 
 // Chmod changes the mode of the named file to mode.
-func (p *PathImpl) Chmod(mode os.FileMode) error {
+func (p PathImpl) Chmod(mode os.FileMode) error {
 	return os.Chmod(p.Path, mode)
 }
 
 // JoinPath Returns a new path, Combine current path with one or several arguments
-func (p *PathImpl) JoinPath(elem ...string) *PathImpl {
+func (p PathImpl) JoinPath(elem ...string) Path {
 	temp := []string{p.Path}
 	elem = append(temp, elem[0:]...)
-	newP := NewPathImpl(path.Join(elem...))
+	newP := New(path.Join(elem...))
 	return newP
 }
 
 // Exists reports current path parent exists.
-func (p *PathImpl) Exists() bool {
+func (p PathImpl) Exists() bool {
 	_, err := os.Stat(p.Path)
 	return err == nil || os.IsExist(err)
 }
 
 // IsDir reports Whether this path is a directory.
-func (p *PathImpl) IsDir() bool {
+func (p PathImpl) IsDir() bool {
 	f, err := os.Stat(p.Path)
 	if err != nil {
 		return false
@@ -155,7 +158,7 @@ func (p *PathImpl) IsDir() bool {
 }
 
 // IsFile reports Whether this path is a regular file.
-func (p *PathImpl) IsFile() bool {
+func (p PathImpl) IsFile() bool {
 	f, e := os.Stat(p.Path)
 	if e != nil {
 		return false
@@ -164,12 +167,13 @@ func (p *PathImpl) IsFile() bool {
 }
 
 // IsAbsolute reports whether the path is absolute.
-func (p *PathImpl) IsAbsolute() bool {
+func (p PathImpl) IsAbsolute() bool {
 	return filepath.IsAbs(p.Path)
 }
 
 // from https://github.com/golang/go/issues/33393
-func RemoveEmpty(slice *[]string) {
+// removeEmpty removes empty string elements from a slice
+func removeEmpty(slice *[]string) {
 	i := 0
 	p := *slice
 	for _, entry := range p {
@@ -182,8 +186,47 @@ func RemoveEmpty(slice *[]string) {
 }
 
 // Parts get the list of path components
-func (p *PathImpl) Parts() []string {
+func (p PathImpl) Parts() []string {
 	parts := strings.Split(p.Path, string(os.PathSeparator))
-	RemoveEmpty(&parts)
+	removeEmpty(&parts)
 	return parts
+}
+
+// userHomeDir ...
+func userHomeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	} else if runtime.GOOS == "linux" {
+		home := os.Getenv("XDG_CONFIG_HOME")
+		if home != "" {
+			return home
+		}
+	}
+	return os.Getenv("HOME")
+}
+
+// normalizePath ...
+func normalizePath(path string) string {
+	// expand tilde
+	if strings.HasPrefix(path, "~/") {
+		path = filepath.Join(userHomeDir(), path[2:])
+	} else if strings.HasPrefix(path, "~") {
+		path = userHomeDir()
+	}
+
+	return path
+}
+
+// ExpandUser returns a copy of this path with ~ expanded
+func (p PathImpl) ExpandUser() (Path, error) {
+	return New(normalizePath(p.Path)), nil
+}
+
+// String conversion
+func (p PathImpl) String() string {
+	return p.Path
 }

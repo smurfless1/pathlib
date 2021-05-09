@@ -14,15 +14,18 @@ func TestPathInOut(t *testing.T) {
 	assert.True(t, pp.Exists())
 	assert.True(t, pp.IsDir())
 	assert.True(t, pp.IsAbsolute())
-	assert.Equal(t, "/tmp", pp.Path)
+	assert.Equal(t, "/tmp", pp.String())
 	parts := pp.Parts()
 	assert.Equal(t, []string{"tmp"}, parts)
 
 	// relative when extracted
 	made := FromParts(parts)
-	assert.Equal(t, "tmp", made.Path)
-	absolute, err := made.Absolute(); if err != nil { log.Println(err)}
-	assert.Equal(t, "/tmp", absolute.Path)
+	assert.Equal(t, "tmp", made.String())
+	absolute, err := made.Absolute()
+	if err != nil {
+		log.Println(err)
+	}
+	assert.Equal(t, "/tmp", absolute.String())
 
 	made = FromParts([]string{"foo"})
 	absolute, err = made.Absolute()
@@ -30,12 +33,12 @@ func TestPathInOut(t *testing.T) {
 
 	made = FromParts([]string{"pathlib/pathlib.go"})
 	absolute, err = made.Absolute()
-	assert.True(t, strings.Contains(made.Path,"pathlib/pathlib.go"))
+	assert.True(t, strings.Contains(made.String(), "pathlib/pathlib.go"))
 
 	// making it absolute
 	parts = append([]string{"/"}, parts...)
 	made = FromParts(parts)
-	assert.Equal(t, "/tmp", made.Path)
+	assert.Equal(t, "/tmp", made.String())
 }
 
 func TestExistsIsMockable(t *testing.T) {
@@ -47,4 +50,9 @@ func TestExistsIsMockable(t *testing.T) {
 	// now this can be injected into something else
 	result := MockInterface.Exists()
 	assert.Equal(t, false, result, "a should be removed")
+}
+
+func TestStringImpl(t *testing.T) {
+	pp := PathImpl{Path: "/tmp"}
+	assert.Equal(t, "/tmp", pp.String())
 }

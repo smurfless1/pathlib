@@ -48,10 +48,10 @@ func (mr *MockPathMockRecorder) Parts() *gomock.Call {
 }
 
 // Absolute mocks base method
-func (m *MockPath) Absolute() (*PathImpl, error) {
+func (m *MockPath) Absolute() (Path, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Absolute")
-	ret0, _ := ret[0].(*PathImpl)
+	ret0, _ := ret[0].(Path)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -63,10 +63,10 @@ func (mr *MockPathMockRecorder) Absolute() *gomock.Call {
 }
 
 // Cwd mocks base method
-func (m *MockPath) Cwd() (*Path, error) {
+func (m *MockPath) Cwd() (Path, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cwd")
-	ret0, _ := ret[0].(*Path)
+	ret0, _ := ret[0].(Path)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -78,10 +78,10 @@ func (mr *MockPathMockRecorder) Cwd() *gomock.Call {
 }
 
 // Parent mocks base method
-func (m *MockPath) Parent() (*Path, error) {
+func (m *MockPath) Parent() (Path, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Parent")
-	ret0, _ := ret[0].(*Path)
+	ret0, _ := ret[0].(Path)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -178,14 +178,14 @@ func (mr *MockPathMockRecorder) Chmod(mode interface{}) *gomock.Call {
 }
 
 // JoinPath mocks base method
-func (m *MockPath) JoinPath(elem ...string) *Path {
+func (m *MockPath) JoinPath(elem ...string) Path {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range elem {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "JoinPath", varargs...)
-	ret0, _ := ret[0].(*Path)
+	ret0, _ := ret[0].(Path)
 	return ret0
 }
 
@@ -209,18 +209,18 @@ func (mr *MockPathMockRecorder) Exists() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockPath)(nil).Exists))
 }
 
-// IsAbs mocks base method
-func (m *MockPath) IsAbs() bool {
+// IsAbsolute mocks base method
+func (m *MockPath) IsAbsolute() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsAbsolute")
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// IsAbs indicates an expected call of IsAbs
-func (mr *MockPathMockRecorder) IsAbs() *gomock.Call {
+// IsAbsolute indicates an expected call of IsAbsolute
+func (mr *MockPathMockRecorder) IsAbsolute() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAbsolute", reflect.TypeOf((*MockPath)(nil).IsAbs))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAbsolute", reflect.TypeOf((*MockPath)(nil).IsAbsolute))
 }
 
 // IsFile mocks base method
@@ -249,4 +249,33 @@ func (m *MockPath) IsDir() bool {
 func (mr *MockPathMockRecorder) IsDir() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDir", reflect.TypeOf((*MockPath)(nil).IsDir))
+}
+
+// ExpandUser mocks base method
+func (m *MockPath) ExpandUser() (Path, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExpandUser")
+	ret0, _ := ret[0].(Path)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExpandUser indicates an expected call of ExpandUser
+func (mr *MockPathMockRecorder) ExpandUser() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExpandUser", reflect.TypeOf((*MockPath)(nil).ExpandUser))
+}
+
+// String mocks base method
+func (m *MockPath) String() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// String indicates an expected call of String
+func (mr *MockPathMockRecorder) String() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockPath)(nil).String))
 }
