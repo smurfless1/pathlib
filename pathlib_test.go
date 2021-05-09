@@ -59,8 +59,7 @@ func TestExpandUser(t *testing.T) {
 	pp := New("~/tmp")
 	assert.Equal(t, "~/tmp", pp.String())
 
-	expanded, err := pp.ExpandUser()
-	assert.Nil(t, err)
+	expanded := pp.ExpandUser()
 
 	if runtime.GOOS == "windows" {
 		assert.True(t, strings.HasPrefix(expanded.String(), "C:"))
@@ -80,8 +79,7 @@ func TestExpandJustUser(t *testing.T) {
 	pp := New("~")
 	assert.Equal(t, "~", pp.String())
 
-	expanded, err := pp.ExpandUser()
-	assert.Nil(t, err)
+	expanded := pp.ExpandUser()
 
 	if runtime.GOOS == "windows" {
 		assert.True(t, strings.HasPrefix(expanded.String(), "C:"))

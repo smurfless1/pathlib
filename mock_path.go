@@ -252,12 +252,11 @@ func (mr *MockPathMockRecorder) IsDir() *gomock.Call {
 }
 
 // ExpandUser mocks base method
-func (m *MockPath) ExpandUser() (Path, error) {
+func (m *MockPath) ExpandUser() Path {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExpandUser")
 	ret0, _ := ret[0].(Path)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // ExpandUser indicates an expected call of ExpandUser

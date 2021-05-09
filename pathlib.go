@@ -30,7 +30,7 @@ type Path interface {
 	IsAbsolute() bool
 	IsFile() bool
 	IsDir() bool
-	ExpandUser() (Path, error)
+	ExpandUser() Path
 	String() string
 }
 
@@ -222,8 +222,8 @@ func normalizePath(path string) string {
 }
 
 // ExpandUser returns a copy of this path with ~ expanded
-func (p PathImpl) ExpandUser() (Path, error) {
-	return New(normalizePath(p.Path)), nil
+func (p PathImpl) ExpandUser() Path {
+	return New(normalizePath(p.Path))
 }
 
 // String conversion
