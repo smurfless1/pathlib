@@ -2,16 +2,29 @@
 package pathlib
 
 import (
+	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"syscall"
 
 	"github.com/pkg/errors"
 )
+
+func checkFinal(e error) error {
+	if e != nil {
+		panic(e)
+	}
+	return nil
+}
+
+func checkInline(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 // Path to a directory or file
 type Path interface {
@@ -192,38 +205,11 @@ func (p PathImpl) Parts() []string {
 	return parts
 }
 
-// userHomeDir ...
-func userHomeDir() string {
-	if runtime.GOOS == "windows" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			home = os.Getenv("USERPROFILE")
-		}
-		return home
-	} else if runtime.GOOS == "linux" {
-		home := os.Getenv("XDG_CONFIG_HOME")
-		if home != "" {
-			return home
-		}
-	}
-	return os.Getenv("HOME")
-}
-
-// normalizePath ...
-func normalizePath(path string) string {
-	// expand tilde
-	if strings.HasPrefix(path, "~/") {
-		path = filepath.Join(userHomeDir(), path[2:])
-	} else if strings.HasPrefix(path, "~") {
-		path = userHomeDir()
-	}
-
-	return path
-}
-
 // ExpandUser returns a copy of this path with ~ expanded
 func (p PathImpl) ExpandUser() Path {
-	return New(normalizePath(p.Path))
+	expanded, err := homedir.Expand(p.Path)
+	checkInline(err)
+	return New(expanded)
 }
 
 // String conversion
