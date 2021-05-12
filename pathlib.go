@@ -117,9 +117,9 @@ func (p PathImpl) Unlink() error {
 	return err
 }
 
-// RmDir Remove this directory. The directory must be empty.
+// RmDir Remove this directory.
 func (p PathImpl) RmDir() error {
-	err := os.Remove(p.Path)
+	err := os.RemoveAll(p.Path)
 	return err
 }
 
