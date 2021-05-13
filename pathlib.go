@@ -45,26 +45,28 @@ type Path interface {
 	IsDir() bool
 	ExpandUser() Path
 	String() string
+	Set(value string)
 }
 
 // PathImpl is the real implementation of interface Path over os/filepath and fs and so on
 type PathImpl struct {
-	Path string
+	Path
+	Value string
 }
 
 // New Returns a new path.
-func New(path string) PathImpl {
-	return PathImpl{Path: path}
+func New(path string) Path {
+	return PathImpl{Value: path}
 }
 
-// FromParts Reconstitute a path string from a list/slice
-func FromParts(value []string) PathImpl {
-	return New(filepath.Join(value...))
+// fromParts Reconstitute a path string from a list/slice
+func fromParts(value []string) PathImpl {
+	return PathImpl{Value: filepath.Join(value...)}
 }
 
 // Absolute Returns an absolute representation of path.
 func (p PathImpl) Absolute() (Path, error) {
-	pth, err := filepath.Abs(p.Path)
+	pth, err := filepath.Abs(p.Value)
 	if err != nil {
 		return nil, errors.Wrap(err, "get absolute failed")
 	}
@@ -72,7 +74,7 @@ func (p PathImpl) Absolute() (Path, error) {
 	if !newP.Exists() {
 		parts := p.Parts()
 		parts = append([]string{"/"}, parts...)
-		newP = FromParts(parts)
+		newP = fromParts(parts)
 		if !newP.Exists() {
 			return nil, errors.New("unable to resolve path to file")
 		}
@@ -104,7 +106,7 @@ func (p PathImpl) Parent() (Path, error) {
 
 // Touch Create creates the named file with mode 0666 (before umask), regardless of whether it exists.
 func (p PathImpl) Touch() error {
-	f, err := os.Create(p.Path)
+	f, err := os.Create(p.Value)
 	if err != nil {
 		return err
 	}
@@ -113,29 +115,29 @@ func (p PathImpl) Touch() error {
 
 // Unlink Remove this file or link.
 func (p PathImpl) Unlink() error {
-	err := syscall.Unlink(p.Path)
+	err := syscall.Unlink(p.Value)
 	return err
 }
 
 // RmDir Remove this directory.
 func (p PathImpl) RmDir() error {
-	err := os.RemoveAll(p.Path)
+	err := os.RemoveAll(p.Value)
 	return err
 }
 
 // MkDir Create a new directory at this given path.
 func (p PathImpl) MkDir(mode os.FileMode, parents bool) (err error) {
 	if parents {
-		err = os.MkdirAll(p.Path, mode)
+		err = os.MkdirAll(p.Value, mode)
 	} else {
-		err = os.Mkdir(p.Path, mode)
+		err = os.Mkdir(p.Value, mode)
 	}
 	return
 }
 
 // Open Reads the file named by filename and returns the contents.
 func (p PathImpl) Open() ([]byte, error) {
-	buf, err := ioutil.ReadFile(p.Path)
+	buf, err := ioutil.ReadFile(p.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -144,12 +146,12 @@ func (p PathImpl) Open() ([]byte, error) {
 
 // Chmod changes the mode of the named file to mode.
 func (p PathImpl) Chmod(mode os.FileMode) error {
-	return os.Chmod(p.Path, mode)
+	return os.Chmod(p.Value, mode)
 }
 
 // JoinPath Returns a new path, Combine current path with one or several arguments
 func (p PathImpl) JoinPath(elem ...string) Path {
-	temp := []string{p.Path}
+	temp := []string{p.Value}
 	elem = append(temp, elem[0:]...)
 	newP := New(path.Join(elem...))
 	return newP
@@ -157,13 +159,13 @@ func (p PathImpl) JoinPath(elem ...string) Path {
 
 // Exists reports current path parent exists.
 func (p PathImpl) Exists() bool {
-	_, err := os.Stat(p.Path)
+	_, err := os.Stat(p.Value)
 	return err == nil || os.IsExist(err)
 }
 
 // IsDir reports Whether this path is a directory.
 func (p PathImpl) IsDir() bool {
-	f, err := os.Stat(p.Path)
+	f, err := os.Stat(p.Value)
 	if err != nil {
 		return false
 	}
@@ -172,7 +174,7 @@ func (p PathImpl) IsDir() bool {
 
 // IsFile reports Whether this path is a regular file.
 func (p PathImpl) IsFile() bool {
-	f, e := os.Stat(p.Path)
+	f, e := os.Stat(p.Value)
 	if e != nil {
 		return false
 	}
@@ -181,7 +183,7 @@ func (p PathImpl) IsFile() bool {
 
 // IsAbsolute reports whether the path is absolute.
 func (p PathImpl) IsAbsolute() bool {
-	return filepath.IsAbs(p.Path)
+	return filepath.IsAbs(p.Value)
 }
 
 // from https://github.com/golang/go/issues/33393
@@ -200,19 +202,24 @@ func removeEmpty(slice *[]string) {
 
 // Parts get the list of path components
 func (p PathImpl) Parts() []string {
-	parts := strings.Split(p.Path, string(os.PathSeparator))
+	parts := strings.Split(p.Value, string(os.PathSeparator))
 	removeEmpty(&parts)
 	return parts
 }
 
 // ExpandUser returns a copy of this path with ~ expanded
 func (p PathImpl) ExpandUser() Path {
-	expanded, err := homedir.Expand(p.Path)
+	expanded, err := homedir.Expand(p.Value)
 	checkInline(err)
 	return New(expanded)
 }
 
 // String conversion
 func (p PathImpl) String() string {
-	return p.Path
+	return p.Value
+}
+
+// Set explicitly replaces the current value
+func (p PathImpl) Set(value string) {
+	p.Value = value
 }

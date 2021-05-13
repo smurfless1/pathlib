@@ -12,7 +12,7 @@ import (
 
 func TestPathInOut(t *testing.T) {
 	// system testing a bit
-	pp := PathImpl{Path: "/tmp"}
+	pp := PathImpl{Value: "/tmp"}
 	assert.True(t, pp.Exists())
 	assert.True(t, pp.IsDir())
 	assert.True(t, pp.IsAbsolute())
@@ -21,7 +21,7 @@ func TestPathInOut(t *testing.T) {
 	assert.Equal(t, []string{"tmp"}, parts)
 
 	// relative when extracted
-	made := FromParts(parts)
+	made := fromParts(parts)
 	assert.Equal(t, "tmp", made.String())
 	absolute, err := made.Absolute()
 	if err != nil {
@@ -29,17 +29,17 @@ func TestPathInOut(t *testing.T) {
 	}
 	assert.Equal(t, "/tmp", absolute.String())
 
-	made = FromParts([]string{"foo"})
+	made = fromParts([]string{"foo"})
 	absolute, err = made.Absolute()
 	assert.EqualError(t, err, "unable to resolve path to file")
 
-	made = FromParts([]string{"pathlib/pathlib.go"})
+	made = fromParts([]string{"pathlib/pathlib.go"})
 	absolute, err = made.Absolute()
 	assert.True(t, strings.Contains(made.String(), "pathlib/pathlib.go"))
 
 	// making it absolute
 	parts = append([]string{"/"}, parts...)
-	made = FromParts(parts)
+	made = fromParts(parts)
 	assert.Equal(t, "/tmp", made.String())
 }
 
@@ -91,4 +91,14 @@ func TestExpandJustUser(t *testing.T) {
 	}
 	assert.True(t, strings.Contains(expanded.String(), os.Getenv("USER")))
 	assert.False(t, strings.HasSuffix(expanded.String(), "/"))
+}
+
+func TestReturnedCopyTypes(t *testing.T) {
+	// if you return a copy (absolute, expanduser, etc.) I'm having trouble
+	// thinking out the correct return types. still learning.
+	logs := New("/tmp")
+	joined := logs.JoinPath("foo")
+	if !joined.Exists() {
+		logs = joined.JoinPath("bar")
+	}
 }

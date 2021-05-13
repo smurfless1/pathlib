@@ -278,3 +278,15 @@ func (mr *MockPathMockRecorder) String() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockPath)(nil).String))
 }
+
+// Set mocks base method
+func (m *MockPath) Set(value string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Set", value)
+}
+
+// Set indicates an expected call of Set
+func (mr *MockPathMockRecorder) Set(value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockPath)(nil).Set), value)
+}
